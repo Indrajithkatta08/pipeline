@@ -32,7 +32,7 @@ jobs:
   deployprod:
     needs: build
     runs-on: ubuntu-latest
-    environment: prod
+    environment: prd
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
