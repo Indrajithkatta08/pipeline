@@ -73,7 +73,7 @@ jobs:
           -Danypoint.platform.client_id="${{ secrets.ENV_CLIENT_ID }}" \
           -Danypoint.platform.client_secret="${{ secrets.ENV_CLIENT_SECRET }}" \
           -Dmule.env="${{ secrets.MULE_ENV }}" \
-          -Dkey="${{ secrets.KEY }}"
+          -Dkey="${{ secrets.ENCRYPTION_KEY }}"
 
   deployuat:
     needs: deploydev
@@ -100,12 +100,12 @@ jobs:
           -Danypoint.platform.client_id="${{ secrets.ENV_CLIENT_ID }}" \
           -Danypoint.platform.client_secret="${{ secrets.ENV_CLIENT_SECRET }}" \
           -Dmule.env="${{ secrets.MULE_ENV }}" \
-          -Dkey="${{ secrets.KEY }}"
+          -Dkey="${{ secrets.ENCRYPTION_KEY }}"
 
   deployprod:
     needs: deployuat
     runs-on: ubuntu-latest
-    environment: prod
+    environment: prd
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
@@ -127,4 +127,4 @@ jobs:
           -Danypoint.platform.client_id="${{ secrets.ENV_CLIENT_ID }}" \
           -Danypoint.platform.client_secret="${{ secrets.ENV_CLIENT_SECRET }}" \
           -Dmule.env="${{ secrets.MULE_ENV }}" \
-          -Dkey="${{ secrets.KEY }}"
+          -Dkey="${{ secrets.ENCRYPTION_KEY }}"
