@@ -1,5 +1,5 @@
 name: Reusable Workflow To Deploy MuleSoft Application
- 
+
 on:
   workflow_call:
 
@@ -23,7 +23,8 @@ jobs:
           distribution: "zulu"
           java-version: 17
 
-     
+      # - name: Build JAR
+      #   run: mvn clean package -DmuleDeploy
 
       - name: Publish to Exchange
         run: |
@@ -32,7 +33,7 @@ jobs:
           -Danypoint.password="${{ secrets.PASS }}"
 
   tagversion:
-    needs: build   # <-- This ensures tagversion only runs after build
+    needs: build
     runs-on: ubuntu-latest
     steps:
       - name: Checkout this repo
@@ -48,12 +49,13 @@ jobs:
           git push origin $VERSION_TAG
 
   deploydev:
-    needs: tagversion  # <-- Ensure deploydev starts only after tagversion
+    needs: build
     runs-on: ubuntu-latest
     environment: dev
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -61,6 +63,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
       - name: Deploy to dev
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
@@ -72,7 +75,7 @@ jobs:
           -Danypoint.platform.client_id="${{ secrets.ENV_CLIENT_ID }}" \
           -Danypoint.platform.client_secret="${{ secrets.ENV_CLIENT_SECRET }}" \
           -Dmule.env="${{ secrets.MULE_ENV }}" \
-          -Dkey="${{ secrets.KEY }}"
+          -Dkey="${{ secrets.ENCRYPTION_KEY }}"
 
   deployuat:
     needs: deploydev
@@ -81,6 +84,7 @@ jobs:
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -88,6 +92,7 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
+
       - name: Deploy to uat
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
@@ -99,15 +104,16 @@ jobs:
           -Danypoint.platform.client_id="${{ secrets.ENV_CLIENT_ID }}" \
           -Danypoint.platform.client_secret="${{ secrets.ENV_CLIENT_SECRET }}" \
           -Dmule.env="${{ secrets.MULE_ENV }}" \
-          -Dkey="${{ secrets.KEY }}"
+          -Dkey="${{ secrets.ENCRYPTION_KEY }}"
 
   deployprod:
     needs: deployuat
     runs-on: ubuntu-latest
-    environment: prod
+    environment: prd
     steps:
       - name: Checkout this repo
         uses: actions/checkout@v4
+
       - name: Cache dependencies
         uses: actions/cache@v4
         with:
@@ -115,7 +121,8 @@ jobs:
           key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
           restore-keys: |
             ${{ runner.os }}-maven-
-      - name: Deploy to prod
+
+      - name: Deploy to prd
         run: |
           mvn deploy --settings .maven/settings.xml -DskipMunitTests -DmuleDeploy \
           -Danypoint.username="${{ secrets.USER }}" \
@@ -126,4 +133,4 @@ jobs:
           -Danypoint.platform.client_id="${{ secrets.ENV_CLIENT_ID }}" \
           -Danypoint.platform.client_secret="${{ secrets.ENV_CLIENT_SECRET }}" \
           -Dmule.env="${{ secrets.MULE_ENV }}" \
-          -Dkey="${{ secrets.KEY }}"
+          -Dkey="${{ secrets.ENCRYPTION_KEY }}"
